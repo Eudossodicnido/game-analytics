@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: bronze
+    meta:
+      external_location: "read_parquet('{{env_var('BRONZE_FILES_PATH')}}/*/*.parquet')" #hive partitioning already enabled by default
+    tables:
+      - name: bronze_games

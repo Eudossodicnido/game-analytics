@@ -1,0 +1,16 @@
+version: 2
+
+seeds:
+  - name: mapping_console_platform_owner
+    description: "Mapping of console platforms to their respective owners (brands)"
+    columns:
+      - name: console_name
+        description: "The name of the console (e.g., PlayStation 3, Xbox 360, Nintendo Switch)"
+        tests:
+          - unique
+          - not_null
+      - name: brand
+        tests:
+          - accepted_values:
+              values: ['Sony', 'Microsoft', 'Nintendo']
+          - not_null

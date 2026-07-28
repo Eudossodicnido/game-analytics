@@ -1,0 +1,11 @@
+models:
+  - name: silver_games
+    description: "This table contains the cleaned and transformed game data from the bronze layer."
+    columns:
+      - name: game_id
+        tests:
+          - not_null
+          - unique
+      - name: metacritic_score
+        tests:
+          - not_null

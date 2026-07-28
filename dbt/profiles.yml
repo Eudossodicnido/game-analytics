@@ -1,0 +1,21 @@
+game_analytics:
+  target: local
+  outputs:
+    local:
+      type: "duckdb"
+      path: ":memory:"
+      external_root: "./data/"
+      threads: 4
+    prod:
+      type: "duckdb"
+      path: ":memory:"
+      extensions:
+        - httpfs
+        - parquet
+      secrets:
+        - type: s3
+          region: "{{ env_var('AWS_REGION') }}"
+          provider: credential_chain
+      external_root: "s3://{{ env_var('S3_BUCKET_NAME') }}/"
+      threads: 4 
+

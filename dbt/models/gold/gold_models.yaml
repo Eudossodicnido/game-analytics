@@ -1,0 +1,15 @@
+models:
+  - name: gold_agg_brands
+    description: "This table contains aggregated game data bucketed by brand."
+    columns:
+      - name: brand
+        tests:
+          - not_null
+          - unique 
+  - name: gold_agg_consoles
+    description: "This table contains aggregated game data bucketed by console."
+    columns:
+      - name: console_name
+        tests:
+          - not_null
+          - unique

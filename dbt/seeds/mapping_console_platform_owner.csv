@@ -1,0 +1,21 @@
+console_name,brand,is_handheld
+Xbox,Microsoft,FALSE
+Xbox 360,Microsoft,FALSE
+Xbox Series S/X,Microsoft,FALSE
+Xbox One,Microsoft,FALSE
+Nintendo Switch,Nintendo,FALSE
+Wii U,Nintendo,FALSE
+Nintendo DS,Nintendo,TRUE
+GameCube,Nintendo,FALSE
+Nintendo 3DS,Nintendo,TRUE
+Wii,Nintendo,FALSE
+Nintendo 64,Nintendo,FALSE
+Game Boy Advance,Nintendo,TRUE
+Game Boy Color,Nintendo,TRUE
+PS Vita,Sony,TRUE
+PlayStation 4,Sony,FALSE
+PlayStation,Sony,FALSE
+PlayStation 3,Sony,FALSE
+PSP,Sony,TRUE
+PlayStation 2,Sony,FALSE
+PlayStation 5,Sony,FALSE
