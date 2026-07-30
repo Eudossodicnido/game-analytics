@@ -1,4 +1,4 @@
 import dagster as dg
-from src.orchestration.defs.dummy_asset import dummy_asset_example
+from src.orchestration.defs.assets import silver_and_gold_games
 
-defs = dg.Definitions(assets=[dummy_asset_example])
+defs = dg.Definitions(assets=[silver_and_gold_games])
