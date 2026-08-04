@@ -20,4 +20,4 @@ dbt/.user.yml
 check_data.py
 
 .tmp_dagster_home_*
-DAGSTER_HOME
+.dagster_home/
