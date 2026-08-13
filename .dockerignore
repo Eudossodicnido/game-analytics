@@ -1,0 +1,13 @@
+.env
+.git/
+.dagster_home/
+.ruff_cache/
+.logs_queue/
+.nux/
+logs/
+.vscode/
+JOURNAL.md
+README.md
+.env.example
+dbt/target/
+dbt/logs/
