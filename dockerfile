@@ -4,7 +4,7 @@ WORKDIR /app
 ENV POETRY_VIRTUALENVS_CREATE=false
 ENV DAGSTER_HOME=/opt/dagster_home
 RUN mkdir -p /opt/dagster_home
-
+COPY dagster.yaml /opt/dagster_home/
 
 RUN pip install poetry==2.4.1 
 COPY pyproject.toml poetry.lock ./
