@@ -12,6 +12,7 @@ data/
 
 *.duckdb
 logs/
+.logs_queue/
 
 dbt/target/
 dbt/logs/
