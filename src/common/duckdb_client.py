@@ -20,7 +20,6 @@ def duckdb_connection():
                 CREATE OR REPLACE SECRET s3_credentials (
                     TYPE s3,
                     PROVIDER credential_chain,
-                    CHAIN 'env',
                     REGION '{AWS_REGION}'
                 );
             """)
