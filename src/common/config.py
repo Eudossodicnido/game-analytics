@@ -14,6 +14,8 @@ RAWG_API_KEY = os.getenv("RAWG_API_KEY")
 API_URL = "https://api.rawg.io/api/games"
 RANGE_METACRITIC_SCORE = "1,100"
 API_PAGE_SIZE = 40
+DELAY = 1.0
+TIMEOUT = 30
 
 # Backfill
 BACKFILL_START_DATE = dt.date(1984, 1, 1)  # "1984-01-01"

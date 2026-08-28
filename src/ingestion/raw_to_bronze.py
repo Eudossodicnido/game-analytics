@@ -33,4 +33,4 @@ def raw_to_bronze(year_month: str) -> None:
 
 if __name__ == "__main__":
     # Example usage:
-    raw_to_bronze("2008-01")
+    raw_to_bronze("2017-10")
