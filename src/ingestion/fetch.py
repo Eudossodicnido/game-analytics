@@ -11,7 +11,7 @@ from src.common.config import (
     API_PAGE_SIZE,
     DELAY,
     TIMEOUT,
-    STAGING_FILES_PATH,
+    RAW_STAGING_PATH,
     RAW_FILES_PATH,
 )
 from src.common.storage import delete_partition, write_json, move_staging_data
@@ -107,7 +107,7 @@ def fetch_games(year_month: str) -> None:
     """
     This function calls _download_to_staging and only if the call is succesful, moves files from staging area to the raw area.
     """
-    staging_path = f"{STAGING_FILES_PATH}/date={year_month}/"
+    staging_path = f"{RAW_STAGING_PATH}/date={year_month}/"
     raw_path = f"{RAW_FILES_PATH}/date={year_month}/"
     _download_to_staging(staging_path=staging_path, year_month=year_month)
     delete_partition(raw_path)

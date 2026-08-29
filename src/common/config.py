@@ -43,13 +43,15 @@ FAILED_MONTHS_FILE_PATH = str(
 )  # since it's only used for backfill and we want to keep track of failed months, we can keep it local for simplicity. Alternatively, we could also store it in S3 if we want to access it from multiple environments.
 
 if ENV == "local":
-    STAGING_FILES_PATH = str(PROJECT_ROOT / "data" / "staging")
+    RAW_STAGING_PATH = str(PROJECT_ROOT / "data" / "raw_staging")
+    BRONZE_STAGING_PATH = str(PROJECT_ROOT / "data" / "bronze_staging")
     RAW_FILES_PATH = str(PROJECT_ROOT / "data" / "raw")
     BRONZE_FILES_PATH = str(PROJECT_ROOT / "data" / "bronze")
     SILVER_FILES_PATH = str(PROJECT_ROOT / "data" / "silver")
     GOLD_FILES_PATH = str(PROJECT_ROOT / "data" / "gold")
 elif ENV == "prod":
-    STAGING_FILES_PATH = f"s3://{S3_BUCKET_NAME}/staging"
+    RAW_STAGING_PATH = f"s3://{S3_BUCKET_NAME}/raw_staging"
+    BRONZE_STAGING_PATH = f"s3://{S3_BUCKET_NAME}/bronze_staging"
     RAW_FILES_PATH = f"s3://{S3_BUCKET_NAME}/raw"
     BRONZE_FILES_PATH = f"s3://{S3_BUCKET_NAME}/bronze"
     SILVER_FILES_PATH = f"s3://{S3_BUCKET_NAME}/silver"
