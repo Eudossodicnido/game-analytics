@@ -9,26 +9,42 @@ from src.common.config import BRONZE_FILES_PATH, SILVER_FILES_PATH, GOLD_FILES_P
 from src.common.storage import delete_partition
 
 
+def _months_for_assets() -> list[str]:
+    year_month = os.environ.get("YEAR_MONTH")
+    lag_months = int(os.environ.get("LAG_MONTHS", 24))
+    window_months = int(os.environ.get("WINDOW_MONTHS", 3))
+    if year_month:
+        return [year_month]
+    else:
+        last_month_two_years_ago = datetime.now(timezone.utc) + relativedelta(
+            months=-lag_months
+        )
+        months_list = [last_month_two_years_ago.strftime("%Y-%m")]
+        for _ in range(window_months - 1):
+            month_plus_one = last_month_two_years_ago + relativedelta(months=+1)
+            months_list.append(month_plus_one.strftime("%Y-%m"))
+            last_month_two_years_ago = month_plus_one
+        return months_list
+
+
 @dg.asset
 def raw_rawg_api(context: dg.AssetExecutionContext) -> None:
-    year_month = os.environ.get(
-        "YEAR_MONTH",
-        (datetime.now(timezone.utc) + relativedelta(months=-1)).strftime("%Y-%m"),
-    )
-    context.log.info(f"Starting {year_month}")
-    fetch_games(year_month)
-    context.log.info(f"Wrote data for {year_month}")
+    months_list = _months_for_assets()
+    context.log.info(f"List of months to process: {months_list}")
+    for year_month in months_list:
+        context.log.info(f"Starting {year_month}")
+        fetch_games(year_month)
+        context.log.info(f"Finished {year_month}")
 
 
 @dg.asset(deps=[raw_rawg_api])
 def bronze_games(context: dg.AssetExecutionContext) -> None:
-    year_month = os.environ.get(
-        "YEAR_MONTH",
-        (datetime.now(timezone.utc) + relativedelta(months=-1)).strftime("%Y-%m"),
-    )
-    context.log.info(f"Starting {year_month}")
-    raw_to_bronze(year_month)
-    context.log.info(f"Wrote data for {year_month}")
+    months_list = _months_for_assets()
+    context.log.info(f"List of months to process: {months_list}")
+    for year_month in months_list:
+        context.log.info(f"Starting {year_month}")
+        raw_to_bronze(year_month)
+        context.log.info(f"Finished {year_month}")
 
 
 @dg.asset(deps=[bronze_games])
