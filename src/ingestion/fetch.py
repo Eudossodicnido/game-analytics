@@ -50,13 +50,14 @@ def should_retry(exception):
     wait=wait_exponential(multiplier=1, min=1, max=10),
     retry=retry_if_exception(should_retry),
 )
-def _download_to_staging(staging_path: str, year_month: str) -> None:
+def _download_to_staging(staging_path: str, year_month: str) -> bool:
     """
     This function deletes partition in the staging area and downloads and writes files in the staging area.
     Function is decorated with retry. Each attempt starts from a clean state to ensure idempotency.
+    Result is a boolean: if api returns data value is True, False otherwise.
     """
     delete_partition(staging_path)
-
+    downloaded = False
     with requests.Session() as session:
         session.headers.update({"User-Agent": "rawg-dl/1.0"})
 
@@ -97,21 +98,28 @@ def _download_to_staging(staging_path: str, year_month: str) -> None:
             file_path = f"{staging_path}rawg_page_{page}.json"
             write_json(file_path, payload)
 
+            downloaded = True
+
             url = data.get("next")
             params = None
             page += 1
             time.sleep(DELAY)
 
+    return downloaded
+
 
 def fetch_games(year_month: str) -> None:
     """
-    This function calls _download_to_staging and only if the call is succesful, moves files from staging area to the raw area.
+    This function calls _download_to_staging and only if the call is succesful and there is data, moves files from staging area to the raw area.
     """
     staging_path = f"{RAW_STAGING_PATH}/date={year_month}/"
     raw_path = f"{RAW_FILES_PATH}/date={year_month}/"
-    _download_to_staging(staging_path=staging_path, year_month=year_month)
-    delete_partition(raw_path)
-    move_staging_data(source_path=staging_path, destination_path=raw_path)
+    downloaded = _download_to_staging(staging_path=staging_path, year_month=year_month)
+    if downloaded:
+        delete_partition(raw_path)
+        move_staging_data(source_path=staging_path, destination_path=raw_path)
+    else:
+        logger.info(f"No data downloaded for {year_month}")
 
 
 if __name__ == "__main__":

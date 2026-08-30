@@ -18,8 +18,8 @@ DELAY = 1.0
 TIMEOUT = 30
 
 # Backfill
-BACKFILL_START_DATE = dt.date(1984, 1, 1)  # "1984-01-01"
-BACKFILL_END_DATE = dt.date(2026, 4, 30)  # "2026-04-30"
+BACKFILL_START_DATE = dt.date(2025, 1, 1)  # "1984-01-01"
+BACKFILL_END_DATE = dt.date(2026, 7, 31)  # "2026-04-30"
 
 
 # Environment
