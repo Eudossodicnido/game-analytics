@@ -15,4 +15,4 @@ COPY dbt/ ./dbt/
 COPY src/ ./src/
 
 
-CMD ["dagster", "asset", "materialize", "--select", "bronze_games", "--module-name", "src.orchestration.definitions"]
+CMD ["dagster", "asset", "materialize", "--select", "key:\"raw_rawg_api\" or key:\"bronze_games\" or key:\"silver_and_gold_games\"", "--module-name", "src.orchestration.definitions"]
