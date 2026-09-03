@@ -9,9 +9,12 @@ from src.common.config import (
     API_URL,
     RANGE_METACRITIC_SCORE,
     API_PAGE_SIZE,
+    DELAY,
+    TIMEOUT,
+    RAW_STAGING_PATH,
     RAW_FILES_PATH,
 )
-from src.common.storage import delete_partition, write_json
+from src.common.storage import delete_partition, write_json, move_staging_data
 from src.common.logging import setup_logging
 
 logger = setup_logging()
@@ -47,9 +50,14 @@ def should_retry(exception):
     wait=wait_exponential(multiplier=1, min=1, max=10),
     retry=retry_if_exception(should_retry),
 )
-def fetch_games(year_month: str, delay: float = 1.0, timeout: int = 30) -> None:
-    raw_file_path = f"{RAW_FILES_PATH}/date={year_month}/"
-    delete_partition(raw_file_path)
+def _download_to_staging(staging_path: str, year_month: str) -> bool:
+    """
+    This function deletes partition in the staging area and downloads and writes files in the staging area.
+    Function is decorated with retry. Each attempt starts from a clean state to ensure idempotency.
+    Result is a boolean: if api returns data value is True, False otherwise.
+    """
+    delete_partition(staging_path)
+    downloaded = False
     with requests.Session() as session:
         session.headers.update({"User-Agent": "rawg-dl/1.0"})
 
@@ -72,7 +80,7 @@ def fetch_games(year_month: str, delay: float = 1.0, timeout: int = 30) -> None:
         page = 1
         while url is not None:
             logger.info(f"Fetching page {page}")
-            resp = session.get(url, params=params, timeout=timeout)
+            resp = session.get(url, params=params, timeout=TIMEOUT)
             resp.raise_for_status()
             data = resp.json()
 
@@ -87,14 +95,32 @@ def fetch_games(year_month: str, delay: float = 1.0, timeout: int = 30) -> None:
                 ).isoformat(),
                 "results": results,
             }
-            file_path = f"{raw_file_path}rawg_page_{page}.json"
+            file_path = f"{staging_path}rawg_page_{page}.json"
             write_json(file_path, payload)
+
+            downloaded = True
 
             url = data.get("next")
             params = None
             page += 1
-            time.sleep(delay)
+            time.sleep(DELAY)
+
+    return downloaded
+
+
+def fetch_games(year_month: str) -> None:
+    """
+    This function calls _download_to_staging and only if the call is succesful and there is data, moves files from staging area to the raw area.
+    """
+    staging_path = f"{RAW_STAGING_PATH}/date={year_month}/"
+    raw_path = f"{RAW_FILES_PATH}/date={year_month}/"
+    downloaded = _download_to_staging(staging_path=staging_path, year_month=year_month)
+    if downloaded:
+        delete_partition(raw_path)
+        move_staging_data(source_path=staging_path, destination_path=raw_path)
+    else:
+        logger.info(f"No data downloaded for {year_month}")
 
 
 if __name__ == "__main__":
-    fetch_games(year_month="2022-02")
+    fetch_games(year_month="2017-10")

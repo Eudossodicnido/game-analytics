@@ -20,6 +20,13 @@ def _parse_s3_path(path: str) -> tuple[str, str]:
     return bucket, rest
 
 
+def _ensure_trailing_slash(prefix: str) -> str:
+    # checking prefix ends with /
+    if not prefix.endswith("/"):
+        prefix += "/"
+    return prefix
+
+
 def delete_partition(path: str) -> None:
     """
     This function deletes all objects in the given path, whether it's an S3 path or a local directory.
@@ -28,8 +35,7 @@ def delete_partition(path: str) -> None:
         # parsing
         bucket, prefix = _parse_s3_path(path)
         # checking prefix ends with /
-        if not prefix.endswith("/"):
-            prefix += "/"
+        prefix = _ensure_trailing_slash(prefix)
 
         # boto3 client
         client = boto3.client("s3")
@@ -73,6 +79,59 @@ def write_json(path: str, data: dict) -> None:
         logger.info(f"Written to {path}")
 
 
+def move_staging_data(source_path: str, destination_path: str) -> None:
+    """
+    This function moves all objects from a source path to the given path, whether it's an S3 path or a local directory.
+    """
+
+    if source_path.startswith("s3://"):
+        # parsing
+        source_bucket, source_prefix = _parse_s3_path(source_path)
+        destination_bucket, destination_prefix = _parse_s3_path(destination_path)
+        # checking prefix ends with /
+        source_prefix = _ensure_trailing_slash(source_prefix)
+        destination_prefix = _ensure_trailing_slash(destination_prefix)
+
+        # boto3 client
+        client = boto3.client("s3")
+
+        # list
+        response = client.list_objects_v2(Bucket=source_bucket, Prefix=source_prefix)
+        contents = response.get("Contents", [])
+        if not contents:
+            logger.info(f"Nothing at {source_path}")
+        # copy objects
+        else:
+            for obj in contents:
+                destination_key = (
+                    f"{destination_prefix}{obj['Key'].removeprefix(source_prefix)}"
+                )
+                client.copy_object(
+                    Bucket=destination_bucket,
+                    Key=destination_key,
+                    CopySource={"Bucket": source_bucket, "Key": obj["Key"]},
+                )
+                logger.info(
+                    f"Moved object {obj['Key']} from {source_path} to {destination_path}"
+                )
+            delete_partition(source_path)
+
+    else:
+        # local
+        try:
+            os.makedirs(destination_path, exist_ok=True)
+            objects_to_move = os.listdir(source_path)
+            for file in objects_to_move:
+                source_file_path = os.path.join(source_path, file)
+                destination_file_path = os.path.join(destination_path, file)
+                shutil.move(source_file_path, destination_file_path)
+                logger.info(f"Moved file {file} to local directory {destination_path}")
+            shutil.rmtree(source_path)
+            logger.info(f"Deleted local directory {source_path}")
+        except FileNotFoundError:
+            logger.info(f"Nothing to move at {source_path}")
+
+
 if __name__ == "__main__":
     # test
-    write_json("data/test-write/unicode.json", {"titolo": "Pokémon — Edizione Blu"})
+    write_json("data/staging/unicode2.json", {"titolo": "Pokémon — Edizione Rosso"})

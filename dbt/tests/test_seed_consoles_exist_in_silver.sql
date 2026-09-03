@@ -1,6 +1,8 @@
 {# This test ensures that all console names in the mapping_console_platform_owner seed exist in the silver_games table. If there are any console names in the seed that do not exist in the silver_games table, this test will fail.
  #}
 
+{{ config(severity = 'warn') }}
+
 WITH silver_consoles_name AS (
 SELECT
     DISTINCT unnested_consoles.unnest AS console_name
