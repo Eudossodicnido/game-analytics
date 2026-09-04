@@ -130,8 +130,3 @@ def move_staging_data(source_path: str, destination_path: str) -> None:
             logger.info(f"Deleted local directory {source_path}")
         except FileNotFoundError:
             logger.info(f"Nothing to move at {source_path}")
-
-
-if __name__ == "__main__":
-    # test
-    write_json("data/staging/unicode2.json", {"titolo": "Pokémon — Edizione Rosso"})

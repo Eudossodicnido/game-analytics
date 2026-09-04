@@ -54,9 +54,9 @@ Main objective that drove my decisions was this: have a production grade system,
 - Programming language: python
 
 ## Pipeline Design
-The main objective of this pipeline is to ensure idempotency (i.e. each re-run produces the same results) and careful consideration has gone into this.
-- Problem: Operations happen at month level and can generate multiple files (json from api, parquet from duckdb). Since s3 is not a database but an object storage. This means each object needs to be copied individually and x PutObject operations cannot be compounded into a single operation, meaning that each incomplete run could potentially leave data in an incoherent state.
-- Solution: write-then-promote. First writing into a staging area and then, only if operation is successful, delete pre-existing partition and move the new data into the partition. Hive partitioning (date=YYYY-MM) makes a month the working unit. Like this a single partition can be re-written without affecting others. Any incoherent or dirty state can be recovered via the staging area. 
+The main objective of this pipeline is to ensure write idempotency and careful consideration has gone into this.
+- Problem: Operations happen at month level and can generate multiple files (json from api, parquet from duckdb). Since s3 is not a database but an object storage. This means each object needs to be copied individually and x PutObject operations cannot be compounded into a single operation, meaning that each incomplete run could potentially leave data in an incoherent state. 
+- Solution: write-then-promote. First writing into a staging area and then, only if operation is successful, delete pre-existing partition and move the new data into the partition. Hive partitioning (date=YYYY-MM) makes a month the working unit. Like this a single partition can be re-written without affecting others. Staging area covers raw and bronze. Silver and gold are deleted and rebuilt entirely at each run. This is the easiest idempotent solution because they are entirely derived from bronze, which is untouched.
 - Guardrails: If there are no results from api, corresponding partition does not get deleted. Same thing happens with bronze partition.
 
 
@@ -86,6 +86,7 @@ This project currently has the following known limitations:
 - Infrastructure: infrastructure was built via CLI and UI, not with IaC. This makes this part not version controlled nor reproducible. Due to the limited amount of resources involved and their stability I deemed using it not necessary.
 - Data source: Rawg API data with metacritic score tends to become sparse in the recent years (e.g. October 2017: 30 games with score, June 2025 0 games with score) and update pattern is not clear (official docs don't say anything on the matter).On the other hand is the only API I could find that serves metacritic score without scraping directly from Metacritic. The pipeline is engineered to run a monthly job that downloads a 3 months-window data 24 months in the past to account for late arriving data. Due to the limitations mentioned above, on this interval is not yet producing new data (September 2026). Worth observing updating pattern and decide at a later stage whether to change source.
 - Alerts: current alerting system does not cover cases when the job does not start in the first place (i.e. scheduler does not start). Detecting this failure would require an inverted logic (i.e. emitting signal at every run and flag its absence as a violation aka dead man's switch). This would need a custom metric at additional cost (~0.30 usd/month) that would still be sent after 30 days and I have decided to not do it.
+- Storage: storage functions assume partitions below 1000 objects. This not addressed since current volume is way below this.
 
 ## Setup
 Pre-requisites: 
