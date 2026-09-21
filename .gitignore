@@ -22,3 +22,7 @@ check_data.py
 
 .tmp_dagster_home_*
 .dagster_home/
+
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
