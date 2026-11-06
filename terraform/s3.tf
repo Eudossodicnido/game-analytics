@@ -1,4 +1,7 @@
-#Bucket
+# S3
+# Data lake bucket and its configuration.
+
+# Bucket
 import {
   to = aws_s3_bucket.data_lake
   identity = {
@@ -13,7 +16,7 @@ resource "aws_s3_bucket" "data_lake" {
   }
 }
 
-# Bucket ownership controls
+# Ownership controls
 import {
   to = aws_s3_bucket_ownership_controls.data_lake
   identity = {
@@ -47,7 +50,7 @@ resource "aws_s3_bucket_public_access_block" "data_lake" {
 }
 
 
-# Server side encription
+# Server side encryption
 import {
   to = aws_s3_bucket_server_side_encryption_configuration.data_lake
   identity = {

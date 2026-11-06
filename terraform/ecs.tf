@@ -1,4 +1,7 @@
-#Cluster
+# ECS
+# Cluster, capacity providers and task definition of the pipeline.
+
+# Cluster
 import {
   to = aws_ecs_cluster.pipeline
   identity = {
@@ -19,7 +22,7 @@ resource "aws_ecs_cluster" "pipeline" {
 }
 
 
-#Capacity Provider
+# Capacity providers
 import {
   to = aws_ecs_cluster_capacity_providers.pipeline
   id = "game-analytics-cluster"
@@ -31,7 +34,7 @@ resource "aws_ecs_cluster_capacity_providers" "pipeline" {
 }
 
 
-#Task Definition
+# Task definition
 import {
   to = aws_ecs_task_definition.pipeline
   identity = {
@@ -51,7 +54,7 @@ resource "aws_ecs_task_definition" "pipeline" {
   container_definitions = jsonencode([
     {
       "name" : "game-analytics",
-      "image" : "649473075374.dkr.ecr.eu-central-1.amazonaws.com/game-analytics:df387f9",
+      "image" : "${aws_ecr_repository.pipeline.repository_url}:df387f9",
       "cpu" : 0,
       "portMappings" : [],
       "essential" : true,
@@ -62,7 +65,7 @@ resource "aws_ecs_task_definition" "pipeline" {
         },
         {
           "name" : "S3_BUCKET_NAME",
-          "value" : "rawg-pipeline-videogames-649473075374-eu-central-1-an"
+          "value" : aws_s3_bucket.data_lake.bucket
         },
         {
           "name" : "AWS_REGION",
@@ -75,14 +78,14 @@ resource "aws_ecs_task_definition" "pipeline" {
       "secrets" : [
         {
           "name" : "RAWG_API_KEY",
-          "valueFrom" : "arn:aws:ssm:eu-central-1:649473075374:parameter/game-analytics/rawg-api-key"
+          "valueFrom" : "arn:aws:ssm:eu-central-1:${data.aws_caller_identity.current.account_id}:parameter/game-analytics/rawg-api-key"
         }
       ],
       "ulimits" : [],
       "logConfiguration" : {
         "logDriver" : "awslogs",
         "options" : {
-          "awslogs-group" : "/ecs/game-analytics",
+          "awslogs-group" : aws_cloudwatch_log_group.pipeline.name,
           "awslogs-create-group" : "true",
           "awslogs-region" : "eu-central-1",
           "awslogs-stream-prefix" : "ecs"
@@ -93,8 +96,8 @@ resource "aws_ecs_task_definition" "pipeline" {
 
     }
   ])
-  task_role_arn      = "arn:aws:iam::649473075374:role/game-analytics-task-role"
-  execution_role_arn = "arn:aws:iam::649473075374:role/game-analytics-execution-role"
+  task_role_arn      = aws_iam_role.task.arn
+  execution_role_arn = aws_iam_role.execution.arn
   runtime_platform {
     operating_system_family = "LINUX"
     cpu_architecture        = "X86_64"

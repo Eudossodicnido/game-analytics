@@ -1,4 +1,7 @@
-#Rule
+# EventBridge
+# Rule that matches failed pipeline tasks, and its SNS target.
+
+# Rule
 import {
   to = aws_cloudwatch_event_rule.task_failed
   identity = {
@@ -34,7 +37,7 @@ resource "aws_cloudwatch_event_rule" "task_failed" {
   })
 }
 
-#Target (separate resource from the rule)
+# Target (separate resource from the rule)
 import {
   to = aws_cloudwatch_event_target.task_failed_alert
   identity = {
@@ -49,7 +52,7 @@ resource "aws_cloudwatch_event_target" "task_failed_alert" {
   event_bus_name = "default"
   target_id      = "Idfb13f72e-734a-426b-bcce-fc22817f6c9e"
   arn            = aws_sns_topic.email_alert.arn
-  role_arn       = "arn:aws:iam::649473075374:role/service-role/Amazon_EventBridge_Invoke_Sns_473456404"
+  role_arn       = aws_iam_role.alerting.arn
   # Input = "Matched event" is the default, so no input/input_transformer.
   # No DLQ, no additional parameters.
 }

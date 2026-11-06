@@ -1,23 +1,9 @@
-
-# ============================================================
-# IAM — Game Analytics Pipeline
-# ============================================================
-# Import existing IAM resources without changing AWS.
-#
-# Managed:
-# - ECS Execution Role
-# - ECS Task Role
-# - EventBridge Scheduler Role
-# - EventBridge Alerting Role
-#
-# Excluded:
-# - game-analytics-terraform-role
-# ============================================================
+# IAM
+# Roles and policies that run the pipeline and send failure alerts.
+# The Terraform role is created by hand and stays outside this configuration.
 
 
-# ------------------------------------------------------------
-# 1. ECS EXECUTION ROLE
-# ------------------------------------------------------------
+# ECS execution role
 
 import {
   to = aws_iam_role.execution
@@ -81,7 +67,7 @@ resource "aws_iam_role_policy" "execution_ssm" {
           "ssm:GetParameters"
         ]
         Resource = [
-          "arn:aws:ssm:eu-central-1:649473075374:parameter/game-analytics/rawg-api-key"
+          "arn:aws:ssm:eu-central-1:${data.aws_caller_identity.current.account_id}:parameter/game-analytics/rawg-api-key"
         ]
       }
     ]
@@ -89,9 +75,7 @@ resource "aws_iam_role_policy" "execution_ssm" {
 }
 
 
-# ------------------------------------------------------------
-# 2. ECS TASK ROLE
-# ------------------------------------------------------------
+# ECS task role
 
 import {
   to = aws_iam_role.task
@@ -143,7 +127,7 @@ resource "aws_iam_role_policy" "task_s3" {
           "s3:DeleteObject"
         ]
         Resource = [
-          "arn:aws:s3:::rawg-pipeline-videogames-649473075374-eu-central-1-an/*"
+          "${aws_s3_bucket.data_lake.arn}/*"
         ]
       },
       {
@@ -153,7 +137,7 @@ resource "aws_iam_role_policy" "task_s3" {
           "s3:ListBucket"
         ]
         Resource = [
-          "arn:aws:s3:::rawg-pipeline-videogames-649473075374-eu-central-1-an"
+          aws_s3_bucket.data_lake.arn
         ]
       }
     ]
@@ -161,9 +145,7 @@ resource "aws_iam_role_policy" "task_s3" {
 }
 
 
-# ------------------------------------------------------------
-# 3. EVENTBRIDGE SCHEDULER ROLE
-# ------------------------------------------------------------
+# Scheduler role
 
 import {
   to = aws_iam_role.scheduler
@@ -214,7 +196,7 @@ resource "aws_iam_role_policy" "scheduler_ecs" {
           "ecs:RunTask"
         ]
         Resource = [
-          "arn:aws:ecs:eu-central-1:649473075374:task-definition/game-analytics:*"
+          "${aws_ecs_task_definition.pipeline.arn_without_revision}:*"
         ]
       },
       {
@@ -224,7 +206,7 @@ resource "aws_iam_role_policy" "scheduler_ecs" {
           "ecs:TagResource"
         ]
         Resource = [
-          "arn:aws:ecs:eu-central-1:649473075374:task/game-analytics-cluster/*"
+          "arn:aws:ecs:eu-central-1:${data.aws_caller_identity.current.account_id}:task/${aws_ecs_cluster.pipeline.name}/*"
         ]
       },
       {
@@ -243,9 +225,7 @@ resource "aws_iam_role_policy" "scheduler_ecs" {
 }
 
 
-# ------------------------------------------------------------
-# 4. EVENTBRIDGE ALERTING ROLE
-# ------------------------------------------------------------
+# EventBridge alerting role
 
 import {
   to = aws_iam_role.alerting
@@ -268,7 +248,7 @@ resource "aws_iam_role" "alerting" {
         Condition = {
           StringEquals = {
             "aws:SourceArn"     = aws_cloudwatch_event_rule.task_failed.arn
-            "aws:SourceAccount" = nonsensitive(var.account_id)
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
           }
         }
       }
@@ -277,6 +257,7 @@ resource "aws_iam_role" "alerting" {
 }
 
 
+# Publish policy (customer managed)
 import {
   to = aws_iam_policy.alerting_publish
   id = "arn:aws:iam::649473075374:policy/service-role/Amazon_EventBridge_Invoke_Sns_473456404"
@@ -299,6 +280,7 @@ resource "aws_iam_policy" "alerting_publish" {
 }
 
 
+# Publish policy attachment
 import {
   to = aws_iam_role_policy_attachment.alerting_publish
   id = "Amazon_EventBridge_Invoke_Sns_473456404/arn:aws:iam::649473075374:policy/service-role/Amazon_EventBridge_Invoke_Sns_473456404"

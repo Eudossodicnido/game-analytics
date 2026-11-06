@@ -1,4 +1,7 @@
-#ECR repository
+# ECR
+# Image repository for the pipeline container.
+
+# Repository
 import {
   to = aws_ecr_repository.pipeline
   identity = {
@@ -23,7 +26,7 @@ resource "aws_ecr_repository" "pipeline" {
 
 }
 
-#Lifecycle policy
+# Lifecycle policy
 import {
   to = aws_ecr_lifecycle_policy.pipeline
   identity = {

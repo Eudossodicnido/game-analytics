@@ -1,4 +1,7 @@
-#Topic
+# SNS
+# Alert topic, its access policy and the email subscription.
+
+# Topic
 import {
   to = aws_sns_topic.email_alert
   identity = {
@@ -12,7 +15,7 @@ resource "aws_sns_topic" "email_alert" {
 }
 
 
-#Policy
+# Topic policy
 import {
   to = aws_sns_topic_policy.topic_policy
   identity = {
@@ -55,7 +58,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceAccount"
-      values   = [var.account_id]
+      values   = [data.aws_caller_identity.current.account_id]
     }
   }
 
@@ -75,7 +78,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
 
 
 
-#Subcription
+# Subscription
 
 import {
   to = aws_sns_topic_subscription.email_alert

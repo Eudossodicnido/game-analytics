@@ -1,3 +1,5 @@
+# Terraform settings, S3 backend and AWS provider.
+
 terraform {
   required_version = "~>1.16"
 
@@ -27,3 +29,5 @@ provider "aws" {
   }
 }
 
+# Account the provider runs in. Used in hand-built ARNs and policy conditions.
+data "aws_caller_identity" "current" {}

@@ -1,4 +1,7 @@
-#pipeline_logs
+# CloudWatch Logs
+# Log group used by the pipeline task.
+
+# Log group
 import {
   to = aws_cloudwatch_log_group.pipeline
   identity = {

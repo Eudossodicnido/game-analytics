@@ -1,3 +1,7 @@
+# EventBridge Scheduler
+# Monthly schedule that runs the pipeline task.
+
+# Schedule
 import {
   to = aws_scheduler_schedule.monthly_run
   identity = {
@@ -20,7 +24,7 @@ resource "aws_scheduler_schedule" "monthly_run" {
 
   target {
     arn      = aws_ecs_cluster.pipeline.arn
-    role_arn = "arn:aws:iam::649473075374:role/game-analytics-scheduler-role"
+    role_arn = aws_iam_role.scheduler.arn
 
     ecs_parameters {
       task_definition_arn = aws_ecs_task_definition.pipeline.arn
