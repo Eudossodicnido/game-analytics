@@ -12,6 +12,9 @@ import {
 resource "aws_sns_topic" "email_alert" {
   name         = "game-analytics-alerts"
   display_name = "game-analytics-alerts"
+  tags = {
+    Project = "game-analytics"
+  }
 }
 
 

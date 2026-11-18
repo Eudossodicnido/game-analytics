@@ -254,6 +254,10 @@ resource "aws_iam_role" "alerting" {
       }
     ]
   })
+
+  tags = {
+    Project = "game-analytics"
+  }
 }
 
 
@@ -277,6 +281,10 @@ resource "aws_iam_policy" "alerting_publish" {
       }
     ]
   })
+
+  tags = {
+    Project = "game-analytics"
+  }
 }
 
 
