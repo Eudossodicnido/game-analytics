@@ -79,12 +79,19 @@ aws ecs run-task \
   --propagate-tags TASK_DEFINITION \
   --region eu-central-1 --no-cli-pager
 ```
-The above commands require an existing AWS infrastructure, hence it's not reproducible as mentioned in the paragraph below.
+The above commands require an existing AWS infrastructure.
+
+
+## Infrastructure
+Infra was first created in UI and CLI and then imported into Terraform, not re-created: re-creating working and tested resources risked breaking the pipeline (e.g. re-creating the data lake bucket would delete everything inside it).
+- Managed: 26 resources across S3, CloudWatch, ECR, ECS, SNS, EventBridge, EventBridge Scheduler and IAM.
+- Not managed, on purpose: state bucket, Terraform role, RAWG API key, budget, default VPC networking, personal IAM users.
+- State in S3 with versioning and locking. Terraform runs with a least-privilege role.
+
 
 ## Limitations
 This project currently has the following known limitations:
-- Infrastructure: infrastructure was built via CLI and UI, not with IaC. This makes this part not version controlled nor reproducible. Due to the limited amount of resources involved and their stability I deemed using it not necessary.
-- Data source: Rawg API data with metacritic score tends to become sparse in the recent years (e.g. October 2017: 30 games with score, June 2025 0 games with score) and update pattern is not clear (official docs don't say anything on the matter).On the other hand is the only API I could find that serves metacritic score without scraping directly from Metacritic. The pipeline is engineered to run a monthly job that downloads a 3 months-window data 24 months in the past to account for late arriving data. Due to the limitations mentioned above, on this interval is not yet producing new data (September 2026). Worth observing updating pattern and decide at a later stage whether to change source.
+- Data source: Rawg API data with metacritic score tends to become sparse in the recent years (e.g. October 2017: 30 games with score, June 2025 0 games with score) and update pattern is not clear (official docs don't say anything on the matter).On the other hand is the only API I could find that serves metacritic score without scraping directly from Metacritic. The pipeline is engineered to run a monthly job that downloads a 3 months-window data 24 months in the past to account for late arriving data. Worth observing updating pattern and decide at a later stage whether to change source.
 - Alerts: current alerting system does not cover cases when the job does not start in the first place (i.e. scheduler does not start). Detecting this failure would require an inverted logic (i.e. emitting signal at every run and flag its absence as a violation aka dead man's switch). This would need a custom metric at additional cost (~0.30 usd/month) that would still be sent after 30 days and I have decided to not do it.
 - Storage: storage functions assume partitions below 1000 objects. This not addressed since current volume is way below this.
 
